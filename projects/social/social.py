@@ -1,11 +1,19 @@
+import random
+from util import Queue
+
+
 class User:
     def __init__(self, name):
         self.name = name
 
+
 class SocialGraph:
     def __init__(self):
         self.last_id = 0
+        # maps ids to user objects (lookup table for user objects given ids)
         self.users = {}
+        # adjacency list
+        # maps users to other users (who are their friends)
         self.friendships = {}
 
     def add_friendship(self, user_id, friend_id):
@@ -42,11 +50,36 @@ class SocialGraph:
         self.last_id = 0
         self.users = {}
         self.friendships = {}
-        # !!!! IMPLEMENT ME
 
         # Add users
+        for i in range(0, num_users):
+            self.add_user(f'User {i + 1}')
 
         # Create friendships
+        # Generate all possible friendships
+        # Avoid duplicate friendships
+        possible_friendships = []
+        for user_id in self.users:
+            for friend_id in range(user_id + 1, self.last_id + 1):
+                # user_id == user_id_2 cannot happen
+                # if friendship between user_id and user_id_2 already exists
+                # don't add friendship between user_id_2 and user_id
+                possible_friendships.append((user_id, friend_id))
+                # print(possible_friendships)
+        # randomly select x friendships
+        # the formula for x is num_users * avg_friendships // 2
+        # shuffle the arr and pick x elements from the front of it
+        random.shuffle(possible_friendships)
+        num_friendships = num_users * avg_friendships // 2
+        for i in range(0, num_friendships):
+            friendship = possible_friendships[i]
+            self.add_friendship(friendship[0], friendship[1])
+
+    def get_neighbors(self, vertex_id):
+        """
+        Get all neighbors (edges) of a vertex.
+        """
+        return self.friendships[vertex_id]
 
     def get_all_social_paths(self, user_id):
         """
@@ -57,8 +90,30 @@ class SocialGraph:
 
         The key is the friend's ID and the value is the path.
         """
-        visited = {}  # Note that this is a dictionary, not a set
-        # !!!! IMPLEMENT ME
+        # breadth first search?
+
+        queue = Queue()
+        visited = {}
+
+        queue.enqueue({
+            'current_vertex': user_id,
+            'path': [user_id]
+        })
+        while queue.size() > 0:
+            current_obj = queue.dequeue()
+            current_path = current_obj['path']
+            current_vertex = current_obj['current_vertex']
+            if current_vertex not in visited:
+                visited[current_vertex] = current_path
+                for neighbor_vertex in self.get_neighbors(current_vertex):
+                    new_path = list(current_path)
+                    new_path.append(neighbor_vertex)
+
+                    queue.enqueue({
+                        'current_vertex': neighbor_vertex,
+                        'path': new_path
+                    })
+
         return visited
 
 
